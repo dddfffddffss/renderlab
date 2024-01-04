@@ -57,8 +57,6 @@ class RenderFrame(gym.Wrapper):
 
     def reset(self, *args, **kwargs):
         observation, info = self.env.reset(*args, **kwargs)
-        self._start()
-        self._write()
         return observation, info
 
     def step(self, *args, **kwargs):
