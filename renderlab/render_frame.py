@@ -7,8 +7,9 @@ import cv2
 import os
 
 class RenderFrame(gym.Wrapper):
-    def __init__(self, env, directory, auto_release=True, size=None, fps=None, rgb=True):
+    def __init__(self, env, directory, auto_release=True, size=None, fps=None, rgb=True, loop_count=1000):
         super().__init__(env)
+        self.loop_count = loop_count
         self.directory = directory
         self.auto_release = auto_release
         self.active = True
@@ -32,6 +33,8 @@ class RenderFrame(gym.Wrapper):
                 self.fps = 30
         else:
             self.fps = fps
+
+        self._start()
 
     def pause(self):
         self.active = False
@@ -63,12 +66,17 @@ class RenderFrame(gym.Wrapper):
         observation, reward, terminated, truncated, info = self.env.step(*args, **kwargs)
         self._write()
 
+        '''
         if self.auto_release and (terminated or truncated):
             self.release()
+        '''
 
         return observation, reward, terminated, truncated, info
 
     def play(self):
+        self._write()
+        self.release()
+
         start = time.time()
         filename = 'temp-{start}.mp4'
         clip = VideoFileClip(self.path)
