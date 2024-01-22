@@ -11,6 +11,7 @@ class RenderFrame(gym.Wrapper):
         super().__init__(env)
         self.cliptime = time.time()
         self.directory = directory
+        self.path = f'{self.directory}/{self.cliptime}.mp4'
         self.auto_release = auto_release
         self.active = False
         self.rgb = rgb
@@ -42,7 +43,6 @@ class RenderFrame(gym.Wrapper):
         return self.active
 
     def start(self):
-        self.path = f'{self.directory}/{self.cliptime}.mp4'
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         self._writer = cv2.VideoWriter(self.path, fourcc, self.fps, self.size)
         self.active = True
