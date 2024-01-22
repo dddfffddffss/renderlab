@@ -7,12 +7,11 @@ import cv2
 import os
 
 class RenderFrame(gym.Wrapper):
-    def __init__(self, env, directory, auto_release=True, size=None, fps=None, rgb=True, loop_count=1000):
+    def __init__(self, env, directory, auto_release=True, size=None, fps=None, rgb=True):
         super().__init__(env)
-        self.loop_count = loop_count
         self.directory = directory
         self.auto_release = auto_release
-        self.active = True
+        self.active = False
         self.rgb = rgb
         
         if env.render_mode != "rgb_array":
@@ -34,19 +33,19 @@ class RenderFrame(gym.Wrapper):
         else:
             self.fps = fps
 
-        self._start()
+    def reset(self, *args, **kwargs):
+        observation, info = self.env.reset(*args, **kwargs)
+        return observation, info
+    
+    def isActive(self):
+        return self.active
 
-    def pause(self):
-        self.active = False
-
-    def resume(self):
-        self.active = True
-
-    def _start(self):
+    def start(self):
         self.cliptime = time.time()
         self.path = f'{self.directory}/{self.cliptime}.mp4'
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         self._writer = cv2.VideoWriter(self.path, fourcc, self.fps, self.size)
+        self.active = True
 
     def _write(self):
         if self.active:
@@ -55,30 +54,20 @@ class RenderFrame(gym.Wrapper):
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             self._writer.write(frame)
 
-    def release(self):
-        self._writer.release()
-
-    def reset(self, *args, **kwargs):
-        observation, info = self.env.reset(*args, **kwargs)
-        return observation, info
-
     def step(self, *args, **kwargs):
         observation, reward, terminated, truncated, info = self.env.step(*args, **kwargs)
         self._write()
 
-        '''
-        if self.auto_release and (terminated or truncated):
-            self.release()
-        '''
-
         return observation, reward, terminated, truncated, info
+    
+    def _release(self):
+        self._writer.release()
 
     def play(self):
         self._write()
-        self.release()
-
-        start = time.time()
-        filename = 'temp-{start}.mp4'
+        self._release()
+        
+        filename = 'temp.mp4'
         clip = VideoFileClip(self.path)
         clip.write_videofile(filename, verbose = False)
         display(Video(filename, embed = True))
