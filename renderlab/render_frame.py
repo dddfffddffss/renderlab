@@ -42,7 +42,7 @@ class RenderFrame(gym.Wrapper):
 
     def start(self):
         if not self.active:
-            self._writer = null
+            self._writer = None
         self.cliptime = time.time()
         self.path = f'{self.directory}/{self.cliptime}.mp4'
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
@@ -74,3 +74,6 @@ class RenderFrame(gym.Wrapper):
         clip.write_videofile(filename, verbose = False)
         display(Video(filename, embed = True))
         os.remove(filename)
+
+    def __del__(self):
+        pass
