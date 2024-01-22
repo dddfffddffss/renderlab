@@ -41,11 +41,10 @@ class RenderFrame(gym.Wrapper):
         return self.active
 
     def start(self):
-        if not self.active:
-            self._writer = None
         self.cliptime = time.time()
         self.path = f'{self.directory}/{self.cliptime}.mp4'
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        print("write 1")
         self._writer = cv2.VideoWriter(self.path, fourcc, self.fps, self.size)
         self.active = True
 
@@ -54,10 +53,12 @@ class RenderFrame(gym.Wrapper):
             frame = self.env.render()
             if self.rgb:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            print("write 2")
             self._writer.write(frame)
 
     def step(self, *args, **kwargs):
         observation, reward, terminated, truncated, info = self.env.step(*args, **kwargs)
+        print("write 3")
         self._write()
 
         return observation, reward, terminated, truncated, info
